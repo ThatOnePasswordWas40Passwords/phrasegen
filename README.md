@@ -28,7 +28,8 @@ have many, many, many other non-interested in outputs.
 
 ## Installation
 
-TODO
+Install `phrasegen` by downloading the appropriate binary for your system from
+[the latest published release](https://github.com/ThatOnePasswordWas40Passwords/phrasegen/releases).
 
 ## Usage
 
@@ -112,4 +113,4 @@ Please submit an issue against this repo.
 
 ## Developement
 
-See [DEVELOPMENT.md]
+See [DEVELOPMENT.md](./DEVELOPMENT.md).

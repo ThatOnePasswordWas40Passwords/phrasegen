@@ -1,6 +1,6 @@
 # Developing phrasegen
 
-Development for phrasegen should occur in the included [devconatiner](./.devcontainer).
+Development for phrasegen should occur in the included [devcontainer](./.devcontainer/devcontainer.json).
 
 ```bash
 code .
