@@ -16,7 +16,9 @@ func main() {
 	inp := phrasegen.GetInput(cliOpts)
 	splitParts := phrasegen.SplitOnSpace(inp)
 
-	for _, pair := range phrasegen.SlidingWindow(splitParts, cliOpts.Size) {
-		fmt.Println(strings.Join(pair, cliOpts.JoinStr))
+	for size := range cliOpts.Size + 1 {
+		for _, pair := range phrasegen.SlidingWindow(splitParts, size) {
+			fmt.Println(strings.Join(pair, cliOpts.JoinStr))
+		}
 	}
 }
