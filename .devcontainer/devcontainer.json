@@ -1,0 +1,76 @@
+{
+  "name": "phrasegen-go-builder",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+    "--init",
+    "--platform=linux/amd64"
+  ],
+  "remoteEnv": {
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+  },
+  "onCreateCommand": "./.devcontainer/setup_profile.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true,
+        "editor.bracketPairColorization.enabled": true,
+        "editor.guides.bracketPairs": true,
+        "editor.guides.bracketPairsHorizontal": false,
+        "go.toolsManagement.autoUpdate": true,
+        "gopls": {
+          "ui.semanticTokens": true
+        },
+        "go.toolsEnvVars": {
+          "GO111MODULE": "on"
+        },
+        "explorer.sortOrderLexicographicOptions": "unicode",
+        "files.watcherExclude": {
+          "**/.bloop": true,
+          "**/.metals": true,
+          "**/.ammonite": true
+        },
+        "todo-tree.general.showActivityBarBadge": true,
+        "todo-tree.filtering.ignoreGitSubmodules": true,
+        "interactiveWindow.executeWithShiftEnter": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash",
+            "args": [
+              "-l"
+            ]
+          }
+        },
+        "tasks": {
+          "version": "2.0.0",
+          "tasks": []
+        }
+      },
+      "extensions": [
+        "golang.Go",
+        "bierner.github-markdown-preview",
+        "bierner.markdown-checkbox",
+        "bierner.markdown-emoji",
+        "bierner.markdown-footnotes",
+        "bierner.markdown-preview-github-styles",
+        "bierner.markdown-yaml-preamble",
+        "christian-kohler.path-intellisense",
+        "davidanson.vscode-markdownlint",
+        "gruntfuggly.todo-tree",
+        "nefrob.vscode-just-syntax",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "usernamehw.errorlens"
+      ]
+    }
+  },
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,readonly,type=bind",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig,readonly,type=bind"
+  ]
+}
