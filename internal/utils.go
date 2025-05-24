@@ -1,6 +1,7 @@
 package phrasegen
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -67,4 +68,10 @@ func SlidingWindow(words []string, size int) [][]string {
 		result = append(result, words[i:i+size])
 	}
 	return result
+}
+
+func ShowPhrases(parts []string, size int, joinStr string) {
+	for _, pair := range SlidingWindow(parts, size) {
+		fmt.Println(strings.Join(pair, joinStr))
+	}
 }

@@ -14,6 +14,7 @@ type CliOptions struct {
 	InputFile   string `flag:"infile"`
 	Input       string `flag:"input"`
 	Size        int    `flag:"size"`
+	Only        bool   `flag:"only"`
 }
 
 func (opts CliOptions) String() string {
@@ -57,6 +58,12 @@ func ParseArgs() CliOptions {
 		"no-strip",
 		false,
 		"Don't strip punctuation from source while joining (default false)",
+	)
+	flag.BoolVar(
+		&cliOpts.Only,
+		"only",
+		false,
+		"ONLY show phrases of specified -size (default false; i.e, phrases of size 1->-size will be generated)",
 	)
 	flag.BoolVar(
 		&cliOpts.Verbose,
