@@ -20,6 +20,9 @@
         "editor.guides.bracketPairs": true,
         "editor.guides.bracketPairsHorizontal": false,
         "go.toolsManagement.autoUpdate": true,
+        "gopls": {
+          "ui.semanticTokens": true
+        },
         "go.toolsEnvVars": {
           "GO111MODULE": "on"
         },

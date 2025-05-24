@@ -1,6 +1,7 @@
 bin := "binaries/phrasegen"
 build := 'go build -ldflags="-s -w"'
 platforms := "linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64"
+phrasegen := "./cmd/phrasegen/main.go"
 
 # Invoked by default via 'just'
 @default:
@@ -38,7 +39,8 @@ platforms := "linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64"
 	echo "Building for {{platform}}..."
 	os=$(echo {{platform}} | cut -d'/' -f1) && \
 	arch=$(echo {{platform}} | cut -d'/' -f2) && \
-	CGO_ENABLED=0 GOOS=$os GOARCH=$arch {{build}} -o {{bin}}.${os}.${arch} ./...
+	CGO_ENABLED=0 GOOS=$os GOARCH=$arch {{build}} -o {{bin}}.${os}.${arch} {{phrasegen}}
+
 
 
 [group('tests')]
@@ -59,4 +61,4 @@ platforms := "linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64"
 
 
 @run: (build-for "linux/amd64")
-	./binaries/phrasegen.linux.amd64
+	./binaries/phrasegen.linux.amd64 -input "foobar foobaz"

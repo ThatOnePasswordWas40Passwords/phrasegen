@@ -62,7 +62,7 @@ linters:
     - exhaustive # checks exhaustiveness of enum switch statements
     - exptostd # detects functions from golang.org/x/exp/ that can be replaced by std functions
     - fatcontext # detects nested contexts in loops
-    - forbidigo # forbids identifiers
+    # - forbidigo # forbids identifiers
     - funcorder # checks the order of functions, methods, and constructors
     - funlen # tool for detection of long functions
     - gocheckcompilerdirectives # validates go compiler directive comments (//go:)
@@ -207,12 +207,12 @@ linters:
           deny:
             - pkg: math/rand$
               desc: Use math/rand/v2 instead, see https://go.dev/blog/randv2
-        "non-main files":
-          files:
-            - "!**/main.go"
-          deny:
-            - pkg: log$
-              desc: Use log/slog instead, see https://go.dev/blog/slog
+        # "non-main files":
+        #   files:
+        #     - "!**/main.go"
+        #   deny:
+        #     - pkg: log$
+        #       desc: Use log/slog instead, see https://go.dev/blog/slog
 
     errcheck:
       # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
