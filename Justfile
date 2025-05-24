@@ -42,7 +42,7 @@ platforms := "linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64"
 
 
 [group('tests')]
-@test-all: test-unit test-integ
+@test: test-unit test-integ
 
 [group('tests')]
 @test-unit:
@@ -54,4 +54,9 @@ platforms := "linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64"
 
 
 @lint:
-    echo lint
+	golangci-lint fmt
+	golangci-lint run
+
+
+@run: (build-for "linux/amd64")
+	./binaries/phrasegen.linux.amd64

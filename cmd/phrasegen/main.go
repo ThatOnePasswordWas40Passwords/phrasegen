@@ -1,5 +1,10 @@
 package main
 
+import (
+	"log"
+)
+
 func main() {
-	println("Hello, world!")
+	log.SetFlags(0)
+	log.Println("Hello, world!")
 }
