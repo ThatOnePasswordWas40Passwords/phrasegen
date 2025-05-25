@@ -48,11 +48,13 @@ phrasegen := "./cmd/phrasegen/main.go"
 
 [group('tests')]
 @test-unit:
-	echo unit test
+	echo "Running unit tests..."
+	go test -short ./...
 
 [group('tests')]
 @test-integ:
-	echo test-integ
+	echo "Running integration tests..."
+	go test -run Integration ./...
 
 
 @lint:

@@ -1,0 +1,75 @@
+package phrasegen
+
+import (
+	"errors"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"slices"
+	"testing"
+)
+
+func TestClean(t *testing.T) {
+	expected := "This 1s a TEST string"
+	uncleaned := "'~This 1s a T-E-S-T! string.<>~'"
+	cleaned := Clean([]byte(uncleaned))
+	if cleaned != expected {
+		t.Errorf("Cleaned (%s) did not match expected: %s", cleaned, expected)
+	}
+}
+
+func TestSplitOnSpace(t *testing.T) {
+	input := "This is a    sentence.\n\n\nIt    has    many   \n    spaces."
+	expected := []string{"This", "is", "a", "sentence.", "It", "has", "many", "spaces."}
+	out := SplitOnSpace(input)
+	if !slices.Equal(out, expected) {
+		t.Errorf("Split on space expected '%s' got '%s'", expected, out)
+	}
+}
+
+func TestLoadFileExistsIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	f, err := os.CreateTemp("", "testfile")
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove(f.Name())
+
+	data, err := LoadFile(f.Name())
+	if err != nil {
+		t.Errorf("Encountered err reading valid file? %s", err)
+	}
+	if data != "" {
+		t.Errorf("Expected empty data from empty temp file?: %s", data)
+	}
+
+	sample := "Some sample data!"
+	f.WriteString(sample)
+	data, err = LoadFile(f.Name())
+	if err != nil {
+		t.Errorf("Encountered err reading valid file? %s", err)
+	}
+	if data != sample {
+		t.Errorf("Didn't receive expected data from temp file?: %s", data)
+	}
+}
+
+func TestLoadFileDneIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	dir, err := os.MkdirTemp("", "testdir")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(dir)
+	fname := filepath.Join(dir, "does_not_exist")
+	_, err = LoadFile(fname)
+	if !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("Expected no such file, got %s", err)
+	}
+}

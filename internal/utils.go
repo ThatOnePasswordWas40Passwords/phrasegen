@@ -18,7 +18,7 @@ func LoadFile(fpath string) (string, error) {
 	return strings.TrimSuffix(string(data), "\n"), nil
 }
 
-func clean(s []byte) string {
+func Clean(s []byte) string {
 	j := 0
 	for _, b := range s {
 		if ('a' <= b && b <= 'z') ||
@@ -46,7 +46,7 @@ func GetInput(opts CliOptions) (string, error) {
 	}
 
 	if !opts.NoStripPunc {
-		inp = clean([]byte(inp))
+		inp = Clean([]byte(inp))
 	}
 	return inp, nil
 }
