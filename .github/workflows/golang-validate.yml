@@ -18,10 +18,10 @@ jobs:
         with:
           go-version: 1.24.3
       - uses: extractions/setup-just@v3
-      - name: lint
-        shell: bash
-        run: |
-          just lint
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
   test:
     runs-on: ${{ matrix.os }}
     strategy:

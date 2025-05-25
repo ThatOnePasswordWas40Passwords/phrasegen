@@ -35,7 +35,7 @@ jobs:
             if [[ $file == cmd/* || $file == internal/* ]]; then
               echo "Detected src code modified!"
               echo "detected_changed_src=true" >> "$GITHUB_OUTPUT"
-              return
+              break
             fi
           done < files.txt
           echo "detected_changed_src=false" >> "$GITHUB_OUTPUT"

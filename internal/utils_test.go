@@ -64,7 +64,6 @@ func TestLoadFileDneIntegration(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	defer os.RemoveAll(dir)
 	fname := filepath.Join(dir, "does_not_exist")
 	_, err := phrasegen.LoadFile(fname)
 	if !errors.Is(err, fs.ErrNotExist) {
