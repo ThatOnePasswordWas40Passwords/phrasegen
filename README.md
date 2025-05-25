@@ -37,74 +37,41 @@ Install `phrasegen` by downloading the appropriate binary for your system from
 phrasegen -h
 ```
 
-e.g Generating passphrases from a movie script, of exactly 4 phrases each, joined by a
-`-` character, without having scrubbed any of the punctuation from the source material
-before after joining, forcing all to lowercase, and storing in an output file `gen.txt`:
+e.g Generating passphrases from a movie script stored in `/tmp/script.txt`, of
+exactly 4 phrases each, joined by a `-` character, without having scrubbed any
+of the punctuation from the source material, and storing in an output file
+to `phrases.txt`:
 
 ```bash
-phrasegen --join-str "-" \
-    --file movie_script.txt \
-    --only-size 4 \
-    --no-strip-punc \
-    --lowercase \
-    -o gen.txt
+phrasegen -join-str "-" \
+    -i /tmp/script.txt \
+    -o phrases.txt \
+    -size 4 \
+    -only \
+    -no-strip
 ```
 
-Generating from a given string via CLI directly and/or outputting to STDOUT is also possible:
+Generating from a given string via CLI directly (if `-i` is not an existing file)
+ and/or outputting to STDOUT is also possible (if `-o` is omitted):
 
 ```bash
-phrasegen --join-str "-" \
-    --input "This is a sentence I'd like to use to generate a set of passphrases against." \
-    --max-size 3 \
-    --no-strip-punc \
-    --lowercase
+phrasegen -join-str "-" \
+    -i "This is a sentence I'd like to use to generate a set of passphrases against." \
+    -size 3
 ```
 
 Outputs to STDOUT:
 
 ```text
-this
+This
+This-is
+This-is-a
 is
-a
-sentence
-i'd
-like
-to
-use
-to
-generate
-a
-set
-of
+...
+of-passphrases-against
 passphrases
-against.
-this-is
-is-a
-a-sentence
-sentence-i'd
-i'd-like
-like-to
-to-use
-use-to
-to-generate
-generate-a
-a-set
-set-of
-of-passphrases
-passphrases-against.
-this-is-a
-is-a-sentence
-a-sentence-i'd
-sentence-i'd-like
-i'd-like-to
-like-to-use
-to-use-to
-use-to-generate
-to-generate-a
-generate-a-set
-a-set-of
-set-of-passphrases
-of-passphrases-against.
+passphrases-against
+against
 ```
 
 ## FAQs

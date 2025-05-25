@@ -16,7 +16,10 @@ func main() {
 }
 
 func run() error {
-	cliOpts := phrasegen.ParseArgs()
+	cliOpts, err := phrasegen.ParseArgs()
+	if err != nil {
+		return err
+	}
 
 	inp, err := phrasegen.GetInput(cliOpts)
 	if err != nil {

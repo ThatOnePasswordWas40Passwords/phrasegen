@@ -2,6 +2,7 @@ package phrasegen
 
 import (
 	"bufio"
+	"errors"
 	"log"
 	"os"
 	"strings"
@@ -34,14 +35,16 @@ func clean(s []byte) string {
 func GetInput(opts CliOptions) (string, error) {
 	var inp string
 	var err error
-	if opts.Input != "" {
+
+	if _, err = os.Stat(opts.Input); errors.Is(err, os.ErrNotExist) {
 		inp = opts.Input
 	} else {
-		inp, err = LoadFile(opts.InputFile)
+		inp, err = LoadFile(opts.Input)
 		if err != nil {
 			return "", err
 		}
 	}
+
 	if !opts.NoStripPunc {
 		inp = clean([]byte(inp))
 	}

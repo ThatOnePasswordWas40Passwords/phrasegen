@@ -1,6 +1,7 @@
 package phrasegen
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -8,48 +9,40 @@ import (
 
 type CliOptions struct {
 	Verbose     bool   `flag:"verbose"`
-	Outfile     string `flag:"outfile"`
+	Outfile     string `flag:"o"`
 	NoStripPunc bool   `flag:"no-strip"`
 	JoinStr     string `flag:"join-str"`
-	InputFile   string `flag:"infile"`
-	Input       string `flag:"input"`
+	Input       string `flag:"i"`
 	Size        int    `flag:"size"`
 	Only        bool   `flag:"only"`
 }
 
 func (opts CliOptions) String() string {
 	return fmt.Sprintf(
-		"CliOptions(verbose=%t, outfile=%s, join-str=%s, no-strip=%t, infile=%s, input=%s, size=%d)",
+		"CliOptions(verbose=%t, outfile=%s, join-str=%s, no-strip=%t, input=%s, size=%d)",
 		opts.Verbose,
 		opts.Outfile,
 		opts.JoinStr,
 		opts.NoStripPunc,
-		opts.InputFile,
 		opts.Input,
 		opts.Size,
 	)
 }
 
-func ParseArgs() CliOptions {
+func ParseArgs() (CliOptions, error) {
 	var cliOpts CliOptions
 
 	flag.StringVar(
 		&cliOpts.Outfile,
-		"outfile",
+		"o",
 		"",
 		"Filepath to write output to. If not given, will write to STDOUT (default empty)",
 	)
 	flag.StringVar(
-		&cliOpts.InputFile,
-		"infile",
-		"",
-		"Path to local file to generate phrases from; MUST specify exactly one of this or -input  (default \"\")",
-	)
-	flag.StringVar(
 		&cliOpts.Input,
-		"input",
+		"i",
 		"",
-		"Raw string generate phrases from; MUST specify exactly one of this or -infile (default \"\")",
+		"Path to local file to generate phrases from OR, if not a valid filepath, a raw string to operate against",
 	)
 	flag.IntVar(&cliOpts.Size, "size", 3, "Number of words to include in generated phrases (default 3)")
 	flag.StringVar(&cliOpts.JoinStr, "join-str", "", "Char/String to join words with (default \"\")")
@@ -63,7 +56,7 @@ func ParseArgs() CliOptions {
 		&cliOpts.Only,
 		"only",
 		false,
-		"ONLY show phrases of specified -size (default false; i.e, phrases of size 1->-size will be generated)",
+		"ONLY show phrases of specified -size (default false; i.e, phrases of size [1, size] will be generated)",
 	)
 	flag.BoolVar(
 		&cliOpts.Verbose,
@@ -77,11 +70,9 @@ func ParseArgs() CliOptions {
 		log.Println(cliOpts)
 	}
 
-	if cliOpts.Input == "" && cliOpts.InputFile == "" {
-		log.Fatal(
-			"Must specify exactly one of either '-infile=/some/path' OR '-input=\"Some text to generate against\"",
-		)
+	if cliOpts.Input == "" {
+		return CliOptions{}, errors.New("must specify either a local file path or a raw string via -i '...'")
 	}
 
-	return cliOpts
+	return cliOpts, nil
 }
