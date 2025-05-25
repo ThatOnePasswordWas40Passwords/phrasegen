@@ -1,0 +1,81 @@
+name: codeql
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check_modified:
+    name: Check modified code files
+    outputs:
+      detected_changed_src: ${{ steps.check_files.outputs.detected_changed_src }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: check for modified code src files
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == cmd/* || $file == internal/* ]]; then
+              echo "Detected src code modified!"
+              echo "detected_changed_src=true" >> "$GITHUB_OUTPUT"
+              return
+            fi
+          done < files.txt
+          echo "detected_changed_src=false" >> "$GITHUB_OUTPUT"
+  scan:
+    needs: check_modified
+    if: needs.check_modified.outputs.detected_changed_src == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      # required to fetch internal or private CodeQL packs
+      packages: read
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.3
+      - uses: github/codeql-action/init@v3
+        with:
+          queries: security-extended
+          languages: go
+          build-mode: none
+          config: |
+            paths:
+              - cmd
+              - internal
+      - uses: github/codeql-action/analyze@v3
+        id: analyze
+        with:
+          category: "/language:go"
+          output: ./codeql/
+      #- name: Upload SARIF file
+      #  uses: github/codeql-action/upload-sarif@v3
+      #  with:
+      #    sarif_file: ${{ steps.analyze.outputs.sarif-output }}/python.sarif
+      #    category: "/language:python"
