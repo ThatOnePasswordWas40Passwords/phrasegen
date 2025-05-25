@@ -1,0 +1,77 @@
+name: Code
+
+on: push
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.3
+      - uses: extractions/setup-just@v3
+      - name: lint
+        shell: bash
+        run: |
+          just lint
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.3
+      - uses: extractions/setup-just@v3
+      - name: test
+        shell: bash
+        run: |
+          just test
+  build:
+    needs: [lint, test]
+    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      contents: read
+      pull-requests: read
+      statuses: read
+      checks: read
+    env:
+      BRANCH_NAME: ${{ github.base_ref || github.ref_name }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.3
+      - uses: extractions/setup-just@v3
+      - name: Get Pull Request Number
+        id: pr
+        run: echo "pull_request_number=$(gh pr view --json number -q .number || echo "")" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: make
+        shell: bash
+        env:
+          GH_PR_NUMBER: ${{ steps.pr.outputs.pull_request_number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          just publish

@@ -1,4 +1,4 @@
-package phrasegen
+package phrasegen_test
 
 import (
 	"errors"
@@ -6,13 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	phrasegen "t1pw40p/tools/phrasegen/internal"
 	"testing"
 )
 
 func TestClean(t *testing.T) {
 	expected := "This 1s a TEST string"
 	uncleaned := "'~This 1s a T-E-S-T! string.<>~'"
-	cleaned := Clean([]byte(uncleaned))
+	cleaned := phrasegen.Clean([]byte(uncleaned))
 	if cleaned != expected {
 		t.Errorf("Cleaned (%s) did not match expected: %s", cleaned, expected)
 	}
@@ -21,7 +22,7 @@ func TestClean(t *testing.T) {
 func TestSplitOnSpace(t *testing.T) {
 	input := "This is a    sentence.\n\n\nIt    has    many   \n    spaces."
 	expected := []string{"This", "is", "a", "sentence.", "It", "has", "many", "spaces."}
-	out := SplitOnSpace(input)
+	out := phrasegen.SplitOnSpace(input)
 	if !slices.Equal(out, expected) {
 		t.Errorf("Split on space expected '%s' got '%s'", expected, out)
 	}
@@ -32,13 +33,13 @@ func TestLoadFileExistsIntegration(t *testing.T) {
 		t.Skip("skipping integration test")
 	}
 
-	f, err := os.CreateTemp("", "testfile")
+	f, err := os.CreateTemp(t.TempDir(), "testfile")
 	if err != nil {
 		panic(err)
 	}
 	defer os.Remove(f.Name())
 
-	data, err := LoadFile(f.Name())
+	data, err := phrasegen.LoadFile(f.Name())
 	if err != nil {
 		t.Errorf("Encountered err reading valid file? %s", err)
 	}
@@ -48,7 +49,7 @@ func TestLoadFileExistsIntegration(t *testing.T) {
 
 	sample := "Some sample data!"
 	f.WriteString(sample)
-	data, err = LoadFile(f.Name())
+	data, err = phrasegen.LoadFile(f.Name())
 	if err != nil {
 		t.Errorf("Encountered err reading valid file? %s", err)
 	}
@@ -62,13 +63,10 @@ func TestLoadFileDneIntegration(t *testing.T) {
 		t.Skip("skipping integration test")
 	}
 
-	dir, err := os.MkdirTemp("", "testdir")
-	if err != nil {
-		panic(err)
-	}
+	dir := t.TempDir()
 	defer os.RemoveAll(dir)
 	fname := filepath.Join(dir, "does_not_exist")
-	_, err = LoadFile(fname)
+	_, err := phrasegen.LoadFile(fname)
 	if !errors.Is(err, fs.ErrNotExist) {
 		t.Errorf("Expected no such file, got %s", err)
 	}
