@@ -1,20 +1,20 @@
 package phrasegen
 
 import (
-	"fmt"
+	"bufio"
 	"log"
 	"os"
 	"strings"
 	"unicode"
 )
 
-func LoadFile(fpath string) string {
+func LoadFile(fpath string) (string, error) {
 	data, err := os.ReadFile(fpath)
 	if err != nil {
 		log.Printf("Unable to read input file %s: %s\n", fpath, err)
-		os.Exit(1)
+		return "", err
 	}
-	return strings.TrimSuffix(string(data), "\n")
+	return strings.TrimSuffix(string(data), "\n"), nil
 }
 
 func clean(s []byte) string {
@@ -31,17 +31,21 @@ func clean(s []byte) string {
 	return string(s[:j])
 }
 
-func GetInput(opts CliOptions) string {
+func GetInput(opts CliOptions) (string, error) {
 	var inp string
+	var err error
 	if opts.Input != "" {
 		inp = opts.Input
 	} else {
-		inp = LoadFile(opts.InputFile)
+		inp, err = LoadFile(opts.InputFile)
+		if err != nil {
+			return "", err
+		}
 	}
 	if !opts.NoStripPunc {
 		inp = clean([]byte(inp))
 	}
-	return inp
+	return inp, nil
 }
 
 // SplitOnNonLetters splits a string on non-letter runes.
@@ -58,20 +62,55 @@ func SplitOnSpace(s string) []string {
 	return strings.Fields(s)
 }
 
-func SlidingWindow(words []string, size int) [][]string {
+func SlidingWindow(words []string, size int, only bool) [][]string {
 	if size > len(words) || size <= 0 {
 		return nil
 	}
 
 	result := [][]string{}
 	for i := 0; i <= len(words)-size; i++ {
-		result = append(result, words[i:i+size])
+		if only {
+			result = append(result, words[i:i+size])
+		} else {
+			for j := 1; j <= size; j++ {
+				result = append(result, words[i:i+j])
+			}
+		}
 	}
 	return result
 }
 
-func ShowPhrases(parts []string, size int, joinStr string) {
-	for _, pair := range SlidingWindow(parts, size) {
-		fmt.Println(strings.Join(pair, joinStr))
+func maybe_add_phrase(seen map[string]struct{}, phrase string, buf *bufio.Writer) {
+	if _, exists := seen[phrase]; !exists {
+		seen[phrase] = struct{}{}
+		_, _ = buf.WriteString(phrase + "\n")
 	}
+}
+
+func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio.Writer) error {
+	if size > len(words) || size <= 0 {
+		return nil
+	}
+
+	//for i := 0; i <= len(words)-size; i++ {
+	wordsLen := len(words)
+	if only {
+		wordsLen -= size
+	}
+
+	seen := make(map[string]struct{})
+	for i := 0; i <= wordsLen; i++ {
+		if only {
+			maybe_add_phrase(seen, strings.Join(words[i:i+size], joinStr), buf)
+		} else {
+			for j := 1; j <= size; j++ {
+				if i+j < wordsLen {
+					maybe_add_phrase(seen, strings.Join(words[i:i+j], joinStr), buf)
+				} else {
+					maybe_add_phrase(seen, strings.Join(words[i:], joinStr), buf)
+				}
+			}
+		}
+	}
+	return nil
 }

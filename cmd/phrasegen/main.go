@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"os"
 	phrasegen "t1pw40p/tools/phrasegen/internal"
@@ -9,17 +10,36 @@ import (
 func main() {
 	log.SetFlags(0)
 	log.SetOutput(os.Stdout)
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
+func run() error {
 	cliOpts := phrasegen.ParseArgs()
-	inp := phrasegen.GetInput(cliOpts)
+
+	inp, err := phrasegen.GetInput(cliOpts)
+	if err != nil {
+		return err
+	}
+
 	splitParts := phrasegen.SplitOnSpace(inp)
 
-	if cliOpts.Only {
-		phrasegen.ShowPhrases(splitParts, cliOpts.Size, cliOpts.JoinStr)
-		return
+	var outBuffer *bufio.Writer
+
+	if cliOpts.Outfile != "" {
+		outFile, err := os.Create(cliOpts.Outfile)
+		if err != nil {
+			log.Printf("Unable to create %s for writing? %s", cliOpts.Outfile, err)
+			return err
+		}
+		outBuffer = bufio.NewWriter(outFile)
+		defer outFile.Close()
+	} else {
+		outBuffer = bufio.NewWriter(os.Stdout)
 	}
 
-	for size := range cliOpts.Size + 1 {
-		phrasegen.ShowPhrases(splitParts, size, cliOpts.JoinStr)
-	}
+	defer outBuffer.Flush()
+
+	return phrasegen.ShowPhrases(splitParts, cliOpts.Size, cliOpts.Only, cliOpts.JoinStr, outBuffer)
 }
