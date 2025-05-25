@@ -80,7 +80,7 @@ func SlidingWindow(words []string, size int, only bool) [][]string {
 	return result
 }
 
-func maybe_add_phrase(seen map[string]struct{}, phrase string, buf *bufio.Writer) {
+func maybeAddPhrase(seen map[string]struct{}, phrase string, buf *bufio.Writer) {
 	if _, exists := seen[phrase]; !exists {
 		seen[phrase] = struct{}{}
 		_, _ = buf.WriteString(phrase + "\n")
@@ -92,7 +92,6 @@ func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio
 		return nil
 	}
 
-	//for i := 0; i <= len(words)-size; i++ {
 	wordsLen := len(words)
 	if only {
 		wordsLen -= size
@@ -101,13 +100,13 @@ func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio
 	seen := make(map[string]struct{})
 	for i := 0; i <= wordsLen; i++ {
 		if only {
-			maybe_add_phrase(seen, strings.Join(words[i:i+size], joinStr), buf)
+			maybeAddPhrase(seen, strings.Join(words[i:i+size], joinStr), buf)
 		} else {
 			for j := 1; j <= size; j++ {
 				if i+j < wordsLen {
-					maybe_add_phrase(seen, strings.Join(words[i:i+j], joinStr), buf)
+					maybeAddPhrase(seen, strings.Join(words[i:i+j], joinStr), buf)
 				} else {
-					maybe_add_phrase(seen, strings.Join(words[i:], joinStr), buf)
+					maybeAddPhrase(seen, strings.Join(words[i:], joinStr), buf)
 				}
 			}
 		}

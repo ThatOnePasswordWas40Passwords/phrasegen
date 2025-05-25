@@ -420,6 +420,8 @@ linters:
       - common-false-positives
     # Excluding configuration per-path, per-linter, per-text and per-source.
     rules:
+      - text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
+        linters: [govet]
       - source: "TODO"
         linters: [godot]
       - text: "should have a package comment"
