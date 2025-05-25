@@ -37,7 +37,11 @@ func TestLoadFileExistsIntegration(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	defer os.Remove(f.Name())
+
+	defer func() {
+		f.Close()
+		os.Remove(f.Name())
+	}()
 
 	data, err := phrasegen.LoadFile(f.Name())
 	if err != nil {
