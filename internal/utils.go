@@ -112,17 +112,16 @@ func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio
 	}
 
 	seen := make(map[string]struct{})
-	var phrase string
+
 	for i := 0; i <= wordsLen; i++ {
 		if only {
-			phrase = ForceCasing(strings.Join(words[i:i+size], joinStr), casing)
-			maybeAddPhrase(seen, phrase, buf)
+			maybeAddPhrase(seen, ForceCasing(strings.Join(words[i:i+size], joinStr), casing), buf)
 		} else {
 			for j := 1; j <= size; j++ {
 				if i+j < wordsLen {
-					maybeAddPhrase(seen, strings.Join(words[i:i+j], joinStr), buf)
+					maybeAddPhrase(seen, ForceCasing(strings.Join(words[i:i+j], joinStr), casing), buf)
 				} else {
-					maybeAddPhrase(seen, strings.Join(words[i:], joinStr), buf)
+					maybeAddPhrase(seen, ForceCasing(strings.Join(words[i:], joinStr), casing), buf)
 				}
 			}
 		}
