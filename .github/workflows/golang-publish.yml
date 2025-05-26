@@ -1,0 +1,33 @@
+name: Release go on cut tag
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+      - uses: extractions/setup-just@v3
+      - name: build
+        shell: bash
+        run: |
+          just build
+      - name: publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ github.workspace }}/CHANGELOG.md
+          files: |
+            binaries/phrasegen*

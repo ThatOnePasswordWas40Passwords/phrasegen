@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
-          go-version: 1.24.3
+          go-version-file: "go.mod"
       - uses: extractions/setup-just@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
@@ -34,44 +34,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
-          go-version: 1.24.3
+          go-version-file: "go.mod"
       - uses: extractions/setup-just@v3
       - name: test
         shell: bash
         run: |
-          just test
-  build:
-    needs: [lint, test]
-    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
-    runs-on: ubuntu-latest
-    permissions:
-      issues: read
-      contents: read
-      pull-requests: read
-      statuses: read
-      checks: read
-    env:
-      BRANCH_NAME: ${{ github.base_ref || github.ref_name }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.24.3
-      - uses: extractions/setup-just@v3
-      - name: Get Pull Request Number
-        id: pr
-        run: echo "pull_request_number=$(gh pr view --json number -q .number || echo "")" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: make
-        shell: bash
-        env:
-          GH_PR_NUMBER: ${{ steps.pr.outputs.pull_request_number }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          just publish
+          just build
