@@ -7,6 +7,13 @@ import (
 	"log"
 )
 
+type Casing string
+
+const (
+	UPPER Casing = "upper"
+	LOWER Casing = "lower"
+)
+
 type CliOptions struct {
 	Verbose     bool   `flag:"verbose"`
 	Outfile     string `flag:"o"`
@@ -15,6 +22,25 @@ type CliOptions struct {
 	Input       string `flag:"i"`
 	Size        int    `flag:"size"`
 	Only        bool   `flag:"only"`
+	Case        Casing `flag:"casing"`
+}
+
+type casingValue struct {
+	casing Casing
+}
+
+func (casing *casingValue) String() string {
+	return string(casing.casing)
+}
+
+func (casing *casingValue) Set(s string) error {
+	switch s {
+	case string(UPPER), string(LOWER), "":
+		casing.casing = Casing(s)
+		return nil
+	default:
+		return errors.New("-casing, if provided, must be of: 'upper|lower'")
+	}
 }
 
 func (opts CliOptions) String() string {
@@ -31,6 +57,7 @@ func (opts CliOptions) String() string {
 
 func ParseArgs() (CliOptions, error) {
 	var cliOpts CliOptions
+	var casing casingValue
 
 	flag.StringVar(
 		&cliOpts.Outfile,
@@ -38,6 +65,7 @@ func ParseArgs() (CliOptions, error) {
 		"",
 		"Filepath to write output to. If not given, will write to STDOUT (default empty)",
 	)
+	flag.Var(&casing, "casing", "Casing to force; If not provided, no case mangling will occur (default '')")
 	flag.StringVar(
 		&cliOpts.Input,
 		"i",
@@ -73,6 +101,8 @@ func ParseArgs() (CliOptions, error) {
 	if cliOpts.Input == "" {
 		return CliOptions{}, errors.New("must specify either a local file path or a raw string via -i '...'")
 	}
+
+	cliOpts.Case = casing.casing
 
 	return cliOpts, nil
 }

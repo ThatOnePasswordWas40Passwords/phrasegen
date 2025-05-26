@@ -90,7 +90,18 @@ func maybeAddPhrase(seen map[string]struct{}, phrase string, buf *bufio.Writer) 
 	}
 }
 
-func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio.Writer) error {
+func ForceCasing(word string, casing Casing) string {
+	switch casing {
+	case UPPER:
+		return strings.ToUpper(word)
+	case LOWER:
+		return strings.ToLower(word)
+	default:
+		return word
+	}
+}
+
+func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio.Writer, casing Casing) error {
 	if size > len(words) || size <= 0 {
 		return nil
 	}
@@ -101,9 +112,11 @@ func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio
 	}
 
 	seen := make(map[string]struct{})
+	var phrase string
 	for i := 0; i <= wordsLen; i++ {
 		if only {
-			maybeAddPhrase(seen, strings.Join(words[i:i+size], joinStr), buf)
+			phrase = ForceCasing(strings.Join(words[i:i+size], joinStr), casing)
+			maybeAddPhrase(seen, phrase, buf)
 		} else {
 			for j := 1; j <= size; j++ {
 				if i+j < wordsLen {
