@@ -44,5 +44,5 @@ func run() error {
 
 	defer outBuffer.Flush()
 
-	return phrasegen.ShowPhrases(splitParts, cliOpts.Size, cliOpts.Only, cliOpts.JoinStr, outBuffer)
+	return phrasegen.ShowPhrases(splitParts, cliOpts.Size, cliOpts.Only, cliOpts.JoinStr, outBuffer, cliOpts.Case)
 }
