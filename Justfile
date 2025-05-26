@@ -2,10 +2,11 @@ bin := "binaries/phrasegen"
 build := 'go build -ldflags="-s -w"'
 platforms := "linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64"
 phrasegen := "./cmd/phrasegen/main.go"
+this_platform := `./scripts/get_os_arch.bash`
 
 # Invoked by default via 'just'
 @default:
-    just --list --unsorted --justfile {{justfile()}}
+	just --list --unsorted --justfile {{justfile()}}
 
 # Remove all built binaries
 @clean:
@@ -28,7 +29,7 @@ phrasegen := "./cmd/phrasegen/main.go"
 
 # Build against all plaforms from 'just list-default-platforms'
 [group('build')]
-@build:
+@build: test
     for platform in {{platforms}}; do \
         just build-for $platform; \
     done
@@ -57,10 +58,17 @@ phrasegen := "./cmd/phrasegen/main.go"
 	go test -run Integration ./...
 
 
-@lint:
-	golangci-lint fmt
+lint:
+	#!/usr/bin/env bash
+	if [ "$(golangci-lint fmt --diff)" != "" ]; then echo "Must 'just format'"; exit 1; fi
 	golangci-lint run
 
+@format:
+	golangci-lint fmt
 
-@run: (build-for "linux/amd64")
-	./binaries/phrasegen.linux.amd64 -input "foobar foobaz"
+
+@run: (build-for this_platform )
+	./scripts/run.bash
+
+@publish: build
+	echo "TODO"
