@@ -1,6 +1,11 @@
 name: Code
 
-on: push
+on:
+  push:
+    tags-ignore:
+      - "*"
+    branches:
+      - "*"
 
 concurrency:
   group: ${{ github.ref }}

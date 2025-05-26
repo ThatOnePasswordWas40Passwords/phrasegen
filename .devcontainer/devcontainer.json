@@ -20,6 +20,13 @@
         "editor.guides.bracketPairs": true,
         "editor.guides.bracketPairsHorizontal": false,
         "go.toolsManagement.autoUpdate": true,
+        "go.inlayHints.compositeLiteralFields": true,
+        "go.inlayHints.compositeLiteralTypes": true,
+        "go.inlayHints.assignVariableTypes": true,
+        "go.inlayHints.constantValues": true,
+        "go.inlayHints.functionTypeParameters": true,
+        "go.inlayHints.parameterNames": true,
+        "go.inlayHints.rangeVariableTypes": true,
         "gopls": {
           "ui.semanticTokens": true
         },
