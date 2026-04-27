@@ -2,8 +2,11 @@ package main
 
 import (
 	"bufio"
+	"errors"
+	"io"
 	"log"
 	"os"
+	"strings"
 	phrasegen "t1pw40p/tools/phrasegen/internal"
 )
 
@@ -21,12 +24,18 @@ func run() error {
 		return err
 	}
 
-	inp, err := phrasegen.GetInput(cliOpts)
-	if err != nil {
-		return err
+	var reader io.Reader
+	if _, statErr := os.Stat(cliOpts.Input); errors.Is(statErr, os.ErrNotExist) {
+		reader = strings.NewReader(cliOpts.Input)
+	} else {
+		f, err := os.Open(cliOpts.Input)
+		if err != nil {
+			log.Printf("Unable to read input file %s: %s\n", cliOpts.Input, err)
+			return err
+		}
+		defer f.Close()
+		reader = f
 	}
-
-	splitParts := phrasegen.SplitOnSpace(inp)
 
 	var outBuffer *bufio.Writer
 
@@ -36,13 +45,33 @@ func run() error {
 			log.Printf("Unable to create %s for writing? %s", cliOpts.Outfile, err)
 			return err
 		}
-		outBuffer = bufio.NewWriter(outFile)
+		outBuffer = bufio.NewWriterSize(outFile, 256<<10)
 		defer outFile.Close()
 	} else {
-		outBuffer = bufio.NewWriter(os.Stdout)
+		outBuffer = bufio.NewWriterSize(os.Stdout, 256<<10)
 	}
 
 	defer outBuffer.Flush()
 
-	return phrasegen.ShowPhrases(splitParts, cliOpts.Size, cliOpts.Only, cliOpts.JoinStr, outBuffer, cliOpts.Case)
+	if cliOpts.Dedup {
+		return phrasegen.StreamPhrases(
+			reader,
+			cliOpts.Size,
+			cliOpts.Only,
+			cliOpts.JoinStr,
+			outBuffer,
+			cliOpts.Case,
+			!cliOpts.NoStripPunc,
+		)
+	}
+
+	return phrasegen.StreamPhrasesNoDedup(
+		reader,
+		cliOpts.Size,
+		cliOpts.Only,
+		cliOpts.JoinStr,
+		outBuffer,
+		cliOpts.Case,
+		!cliOpts.NoStripPunc,
+	)
 }

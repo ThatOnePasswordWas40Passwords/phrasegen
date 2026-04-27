@@ -18,6 +18,7 @@ type CliOptions struct {
 	Verbose     bool   `flag:"verbose"`
 	Outfile     string `flag:"o"`
 	NoStripPunc bool   `flag:"no-strip"`
+	Dedup       bool   `flag:"dedup"`
 	JoinStr     string `flag:"join-str"`
 	Input       string `flag:"i"`
 	Size        int    `flag:"size"`
@@ -85,6 +86,12 @@ func ParseArgs() (CliOptions, error) {
 		"only",
 		false,
 		"ONLY show phrases of specified -size (default false; i.e, phrases of size [1, size] will be generated)",
+	)
+	flag.BoolVar(
+		&cliOpts.Dedup,
+		"dedup",
+		false,
+		"Deduplicate output phrases in memory; slower and uses more RAM (default false)",
 	)
 	flag.BoolVar(
 		&cliOpts.Verbose,

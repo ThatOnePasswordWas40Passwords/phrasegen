@@ -3,6 +3,7 @@ package phrasegen
 import (
 	"bufio"
 	"errors"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -126,5 +127,175 @@ func ShowPhrases(words []string, size int, only bool, joinStr string, buf *bufio
 			}
 		}
 	}
+	return nil
+}
+
+func cleanWord(word string) string {
+	n := 0
+	for i := 0; i < len(word); i++ {
+		b := word[i]
+		if ('a' <= b && b <= 'z') || ('A' <= b && b <= 'Z') || ('0' <= b && b <= '9') {
+			n++
+		}
+	}
+	if n == len(word) {
+		return word
+	}
+	if n == 0 {
+		return ""
+	}
+	buf := make([]byte, 0, n)
+	for i := 0; i < len(word); i++ {
+		b := word[i]
+		if ('a' <= b && b <= 'z') || ('A' <= b && b <= 'Z') || ('0' <= b && b <= '9') {
+			buf = append(buf, b)
+		}
+	}
+	return string(buf)
+}
+
+func buildPhrase(words []string, joinStr string, b *strings.Builder) string {
+	b.Reset()
+	for i, w := range words {
+		if i > 0 {
+			b.WriteString(joinStr)
+		}
+		b.WriteString(w)
+	}
+	return b.String()
+}
+
+func writeIfNew(seen map[string]struct{}, phrase string, buf *bufio.Writer) {
+	if _, exists := seen[phrase]; !exists {
+		seen[phrase] = struct{}{}
+		_, _ = buf.WriteString(phrase)
+		_ = buf.WriteByte('\n')
+	}
+}
+
+func writePhrase(words []string, joinStr string, buf *bufio.Writer) {
+	for i, w := range words {
+		if i > 0 {
+			_, _ = buf.WriteString(joinStr)
+		}
+		_, _ = buf.WriteString(w)
+	}
+	_ = buf.WriteByte('\n')
+}
+
+func emitPhrases(words []string, size int, only bool, joinStr string, builder *strings.Builder, seen map[string]struct{}, buf *bufio.Writer) {
+	if only {
+		if len(words) >= size {
+			writeIfNew(seen, buildPhrase(words[:size], joinStr, builder), buf)
+		}
+	} else {
+		maxJ := size
+		if maxJ > len(words) {
+			maxJ = len(words)
+		}
+		for j := 1; j <= maxJ; j++ {
+			writeIfNew(seen, buildPhrase(words[:j], joinStr, builder), buf)
+		}
+	}
+}
+
+func emitPhrasesNoDedup(words []string, size int, only bool, joinStr string, buf *bufio.Writer) {
+	if only {
+		if len(words) >= size {
+			writePhrase(words[:size], joinStr, buf)
+		}
+	} else {
+		maxJ := size
+		if maxJ > len(words) {
+			maxJ = len(words)
+		}
+		for j := 1; j <= maxJ; j++ {
+			writePhrase(words[:j], joinStr, buf)
+		}
+	}
+}
+
+func StreamPhrases(reader io.Reader, size int, only bool, joinStr string, buf *bufio.Writer, casing Casing, stripPunc bool) error {
+	return streamPhrases(reader, size, only, joinStr, buf, casing, stripPunc, false)
+}
+
+func StreamPhrasesNoDedup(reader io.Reader, size int, only bool, joinStr string, buf *bufio.Writer, casing Casing, stripPunc bool) error {
+	return streamPhrases(reader, size, only, joinStr, buf, casing, stripPunc, true)
+}
+
+func streamPhrases(reader io.Reader, size int, only bool, joinStr string, buf *bufio.Writer, casing Casing, stripPunc bool, noDedup bool) error {
+	if size <= 0 {
+		return nil
+	}
+
+	scanner := bufio.NewScanner(reader)
+	scanner.Split(bufio.ScanWords)
+
+	var seen map[string]struct{}
+	var builder strings.Builder
+	if !noDedup {
+		seen = make(map[string]struct{})
+	}
+	words := make([]string, 0, size+1)
+	count := 0
+
+	for scanner.Scan() {
+		word := scanner.Text()
+		if stripPunc {
+			word = cleanWord(word)
+			if word == "" {
+				continue
+			}
+		}
+		switch casing {
+		case UPPER:
+			word = strings.ToUpper(word)
+		case LOWER:
+			word = strings.ToLower(word)
+		}
+		count++
+		words = append(words, word)
+
+		if len(words) > size {
+			if noDedup {
+				emitPhrasesNoDedup(words, size, only, joinStr, buf)
+			} else {
+				emitPhrases(words, size, only, joinStr, &builder, seen, buf)
+			}
+			copy(words, words[1:])
+			words[size] = ""
+			words = words[:size]
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	if count < size {
+		return nil
+	}
+
+	if only {
+		if len(words) == size {
+			if noDedup {
+				emitPhrasesNoDedup(words, size, only, joinStr, buf)
+			} else {
+				emitPhrases(words, size, only, joinStr, &builder, seen, buf)
+			}
+		}
+	} else {
+		for len(words) > 0 {
+			if noDedup {
+				emitPhrasesNoDedup(words, size, only, joinStr, buf)
+			} else {
+				emitPhrases(words, size, only, joinStr, &builder, seen, buf)
+			}
+			copy(words, words[1:])
+			words[len(words)-1] = ""
+			words = words[:len(words)-1]
+		}
+	}
+
 	return nil
 }
